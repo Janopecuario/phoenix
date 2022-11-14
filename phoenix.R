@@ -1,61 +1,51 @@
-#0.PREPARACIÓN####
+#1.PREPARACIÓN####
+#1.1 Carga de paquetes#####
 packages<-c("tidyverse","sp","rgdal",
             "raster","DHARMa","mgcv","fields","viridis","leaflet",
-            "htmltools","htmlwidgets")
+            "htmltools","htmlwidgets","dismo","terra","biomod2")
 sapply(packages,require,character.only=TRUE,quietly=TRUE)
+
+#1.2 Preparación geografía----
+
 projectionUTM<-"+proj=utm +zone=28 +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
 projectiongeo<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-grancanaria<-readOGR("~/rhamnus/islas.shp")
-grancanaria<-subset(grancanaria, nombre=="GRAN CANARIA") %>% spTransform(projectiongeo)
-mdt<-readOGR("Height_Malla.shp") %>% spTransform(projectiongeo)
-mdtRUTM<-mdt %>% as.data.frame() %>% select(c(2:4)) %>% 
-  rasterFromXYZ(crs=projectionUTM) 
-mdtR<-projectRaster(from=mdtRUTM,crs=projectiongeo)
-aspect<-raster::terrain(mdtR,opt="aspect",unit="degrees") %>% cos()
-mdtgeo<-readOGR("heightgeo.shp") %>% raster() %>% plot()
-mdtR<-mdtgeo %>% spTransform(projectiongeo) %>% 
-  as.data.frame() %>% select(c(2:4)) %>% 
-  rasterFromXYZ(crs=projectiongeo)
+grancanaria<-readOGR("islas.shp") %>% 
+  subset( nombre=="GRAN CANARIA")  #proyeccionUTM
 
-terreno<-mdtR %>% as.data.frame(xy=TRUE)
-terreno<-aspect %>% as.data.frame() %>% cbind(terreno,.) %>% 
-  rename(z=h_mean,asp=layer)
+mdt<-raster("MDT25.tif") %>%  #proyeccionUTM
+crop(grancanaria) %>% mask(grancanaria)
 
-centroides<-readOGR("Centroides_Malla_H.shp")
-centroidesUTM<-spTransform(centroides,projectiongeo) %>% 
-  as.data.frame() %>% select(c(2:4)) %>% 
-  rasterFromXYZ(crs=projectionUTM)
-centroidesgeo<-projectRaster(from=centroidesUTM,crs=projectiongeo)
-aspect<-raster::terrain(centroidesgeo,opt="aspect",unit="degrees") %>% cos()
+#mdtR<-projectRaster(from=mdtRUTM,crs=projectiongeo)
+aspect<-raster::terrain(mdt,opt="aspect",unit="degrees") %>% cos()
+tpi<-raster::terrain(mdt,opt="TPI")
+tri<-raster::terrain(mdt,opt="TRI")
+slope<-raster::terrain(mdt,opt="slope")
 
-mdt25<-raster("136_MDT25_GC.tif") %>% 
-  projectRaster(crs=projectiongeo) %>% 
-  crop(grancanaria) %>% mask(grancanaria)
-aspect<-raster::terrain(mdt25,opt="aspect",unit="degrees") %>% 
-  cos()  
+#2.MODELO CLIMA#####
 
-terreno<-mdt25 %>% as.data.frame(xy=TRUE)
-terreno<-aspect %>% as.data.frame() %>% cbind(terreno,.) %>% 
-  rename(z=X136_MDT25_GC,asp=layer)
+#2.1 Temperatura media####
 
-res<-res(mdtR)
-mdt500<-raster("mdt500.tif") 
-#mdt500<-projectRaster(from=mdt500,crs=projectiongeo)
-aspect<-raster::terrain(mdt500,opt="aspect",unit="degrees") %>% 
-  cos()  
-terreno<-mdt500 %>% as.data.frame(xy=TRUE)
-terreno<-aspect %>% as.data.frame() %>% cbind(terreno,.) %>% 
-  rename(z=mdt500,asp=layer)
+tmeanraw<-  read_delim("tmean.csv",delim=";", 
+                  locale = locale(encoding = "windows-1252")) %>% 
+  subset(NOM_PROV=="LAS PALMAS")%>% 
+  rename(year=Año) %>% 
+  separate(col=LONGITUD,into = c("longdeg","longmin","longsec","longsecdec"),
+           sep=c(2,4,6),remove=TRUE, convert=TRUE) %>%
+  mutate(x=longdeg+longmin/60+longsec/3600+longsecdec*0.1/3600) %>% 
+  relocate(x,.before=year) %>% 
+  dplyr::select(-c("longdeg","longmin","longsec","longsecdec")) %>% 
+  dplyr::select(-c("ALTITUD","NOM_PROV","Media")) %>%  
+  separate(col=LATITUD,into = c("latdeg","latmin","latsec"),
+           sep=c(2,4),remove=TRUE, convert=TRUE) %>%
+  mutate(y=latdeg+latmin/60+latsec/3600) %>% 
+  relocate(y,.before=year) %>%
+  dplyr::select(-c("latdeg","latmin","latsec")) %>%
+  subset(x<15 & y>27.3) %>% 
+  mutate(Indicativo=factor(Indicativo)) %>% group_by(Indicativo)
 
-#tmean####
+tmean<-tmeanraw %>% 
+  summarise(across(enero:diciembre,~mean(.x,na.rm=TRUE)),x=max(x),y=max(y),n=n())
 
-tmean<-read_delim("TEMP.MEDIA MENSUAL.CSV",delim=";") %>% 
-  subset(NOM_PROV=="LAS PALMAS") %>% 
-  subset(x<15*-1 & y>27.3) %>%
-  select(-c(5:8,10:12)) %>% 
-  select(-c("NOMBRE","ALTITUD","Media","NOM_PROV")) %>% 
-  group_by(Indicativo) %>% 
-  summarise_all(mean,na.rm=TRUE)
 
 coordinates(tmean)=~x+y
 crs(tmean)<-projectiongeo
@@ -316,38 +306,7 @@ SpatialPointsDataFrame(coords=tmean[c("x","y")],data=tmean) %>% plot()
 points(GC)
 
 
-#1.1 Crear mapa web####
-mapaweb<-leaflet() %>% 
-  addTiles(group="Open Street Maps") %>%
-  addProviderTiles(providers$Esri.WorldImagery,group="Ortoimágenes") %>% 
-  addWMSTiles(baseUrl="http://www.madrid.org/cartografia/ide/wms/WMS_ORTOIMAGENES.xml",
-              layers="ORTO_50CM_20092",
-              group = "Open Street Maps",
-              options = WMSTileOptions(format = "image/png", transparent = F)) %>%
-  setView(lng = -15.3, lat = 28.3, zoom = 12)%>% 
-  addMarkers(data=GCdf,
-             #group="Actuaciones LIFE CAÑADAS",
-             #icon=iconoLIFE,
-             lng=GCdf$x,lat=GCdf$y, 
-             popup = GCdf$LUGAR) %>% 
-  addCircleMarkers(data=coordenadasprec,
-             #group="Actuaciones LIFE CAÑADAS",
 
-              #icon=quakeIcons,
-              lng=coordenadasprec$x,lat=coordenadasprec$y,
-              #popup = tmean$NOMBRE             ) %>%
-
-             # icon=greenLeafIcon,
-             # lng=tmean$x,lat=tmean$y#,
-             #popup = ~htmlEscape(coordenadasprec$NOMBRE)
-             ) %>%
-
-  addLayersControl(
-    baseGroups = c("Open Street Maps","Ortoimágenes"),
-    #overlayGroups = c("Vías Pecuarias","Unidad de Arcosas", "Actuaciones LIFE CAÑADAS"),
-    options = layersControlOptions(collapsed = TRUE)
-  )
-saveWidget(mapaweb,file="mapaweb.html")
 #1.Relativizar coordenadas####
 
 predictores<-GCdf %>% filter(MEDANO>0)%>% select(x,y,ALTI) 
@@ -364,45 +323,9 @@ surface(prec2)
 ggplot()
 zi<-xi-min/max-min
 
-
-
-
 #readtmean
 #readprec
 #readtmax
 #evaptranstot
 pet<-batchPetHgsm(petfiles, 01, tmin, tmean, tmax, rad)
 
-#ÑAPA GC####
-setwd("~/Spalmensis")
-gridded(meuse.grid) <- ~x+y
-meuse.raster <- raster(meuse.grid)
-plot(meuse.raster)
-gcfiles<-list.files(pattern="grancanaria")
-gcstack<-stack()
-for(i in gcfiles){
-  print(i)
-  raster(i) %>% aggregate(10) %>%
-    mask(grancanaria) %>% 
-    writeRaster(paste0("500",i),overwrite=TRUE)
-    
-  
-}
-raster(paste0("500",gcfiles[1])) %>% plot()
-#1.1. Cotejar coordenadas ISA Gran Canaria
-GCelev<-raster("grancanaria.asc")
-crs(GCelev)<-projectionUTM
-GCelev<-GCelev%>% 
-  projectRaster(crs=projectiongeo)
-
-
-archipielago<-
-  GC<-readOGR("estacionesAEMET_GC.shp")
-GCgeo<-spTransform(GC,projectiongeo)
-
-
-limGC<-extent(GC)
-plot(GC)
-GCdf<-data.frame(GCgeo) #%>% mutate(LONG=LONG/10000,LAT=LAT/10000)
-GCdf$x<-coordinates(GCgeo)[,1]
-GCdf$y<-coordinates(GCgeo)[,2]

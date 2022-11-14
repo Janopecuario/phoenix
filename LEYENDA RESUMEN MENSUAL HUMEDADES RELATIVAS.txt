@@ -1,0 +1,27 @@
+Campos incluidos:
+     Indicativo: Indicativo climatológico
+     NOMBRE: Nombre estación
+     ALTITUD: Altitud de la estación (metros)
+     LONGITUD: Longitud geográfica
+          (La última cifra indica la orientación: 1 para longitud E y 2 para W)
+     LATITUD: Latitud geográfica
+
+     HUM00: Humedad media mensual a 00
+     HUM07: Humedad media mensual a 07
+     HUM13: Humedad media mensual a 13
+     HUM18: Humedad media mensual a 18
+     HUMED: Humedad media mensual (07, 13 y 18)
+     HUMED_HOR: Humedad media horaria mensual
+     HUMAXM: Humedad máxima absoluta mensual
+     FHUMAXM: Fecha humedad máxima
+     HUMINM: Humedad mínima absoluta mensual
+     FHUMINM: Fecha humedad mínima
+     HUMEDMAX: Media mensual de la humedad máxima diaria
+     HUMEDMIN: Media mensual de la humedad mínima diaria
+     NDIAS: Número de días con datos incompletos de humedad
+
+Unidades y valores especiales:
+
+     Horas UTC (Tiempo Universal Coordinado)
+
+     Humedades relativas en tanto por ciento.

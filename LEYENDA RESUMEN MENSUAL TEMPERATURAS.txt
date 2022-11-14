@@ -1,0 +1,42 @@
+Campos incluidos:
+     Indicativo: Indicativo climatológico
+     NOMBRE: Nombre estación
+     ALTITUD: Altitud de la estación (metros)
+     LONGITUD: Longitud geográfica
+          (La última cifra indica la orientación: 1 para longitud E y 2 para W)
+     LATITUD: Latitud geográfica
+
+     T_MAX: Temperatura máxima absoluta mensual
+     D1MAX: Primer día de la temperatura máxima absoluta
+     D2MAX: Segundo día de la temperatura máxima absoluta
+     T_MIN: Temperatura mínima absoluta mensual
+     D1MIN: Primer día de la temperatura mínima absoluta
+     D2MIN: Segundo día de la temperatura mínima absoluta
+     TM_MAX: Media mensual de la temperatura máxima diaria
+     TM_MIN: Media mensual de la temperatura mínima diaria
+     TM_MES: Temperatura media mensual
+     TM_MES_HOR: Temperatura media horaria mensual
+     PRIMERA_HELADA: Fecha de la primera helada en el mes
+     ULTIMA_HELADA: Fecha de la última helada en el mes
+     T_MIN_MAX: Temperatura mínima de las máximas
+     T_MAX_MIN: Temperatura máxima de las mínimas
+     DIAS_TMIN_0: Días de temperatura mínima <=0°C (días de helada)
+     DIAS_TMIN_5: Días de temperatura mínima <=-5°C
+     DIAS_TMIN_20: Días de temperatura mínima >=20°C (noches tropicales)
+     DIAS_TMAX_25: Días de temperatura máxima >=25°C
+     DIAS_TMAX_30: Días de temperatura máxima >=30°C
+     TMIN_JSM: Temperatura mínima absoluta junto al suelo mensual
+     FTMIN_JSM: Fecha de la temperatura mínima absoluta junto al suelo
+     TMINM_JS: Media mensual de la temperatura mínima diaria junto al suelo
+     NDIAS1: Número de días con datos incompletos de temperatura del aire
+     NDIAS2: Número de días sin dato de temperatura mínima junto al suelo
+     FH_ACT: Fecha de actualización
+
+Unidades y valores especiales:
+
+     Horas UTC (Tiempo Universal Coordinado)
+
+     Temperaturas en décimas de grado centígrado
+
+     Valores especiales en segundo día de temperatura máxima/mínima absoluta
+	99: la temperatura máxima/mínima absoluta se alcanza más de dos días a lo largo del mes.

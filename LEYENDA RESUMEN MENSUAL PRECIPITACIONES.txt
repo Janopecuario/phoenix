@@ -1,0 +1,45 @@
+Campos incluidos:
+     Indicativo: Indicativo climatológico
+     NOMBRE: Nombre estación
+     ALTITUD: Altitud de la estación (metros)
+     LONGITUD: Longitud geográfica
+          (La última cifra indica la orientación: 1 para longitud E y 2 para W)
+     LATITUD: Latitud geográfica
+
+     PMES77: Precipitación total mensual
+     PMAX77: Precipitación máxima diaria mensual
+     D1PMAX: Primer día de la precipitación máxima
+     D2PMAX: Segundo día de la precipitación máxima
+     VPMAX: Dirección del viento en la precipitación máxima
+     VDOMIN: Viento dominante en los días de precipitación
+     DINAP: Días de precipitación inapreciable
+     DAPRE: Días de precipitación apreciable
+     DP10: Días de precipitación >=10 décimas
+     DP100: Días de precipitación >=100 décimas
+     DP300: Días de precipitación >=300 décimas
+     DLLUVIA: Días de lluvia
+     DNIEVE: Días de nieve
+     DGRANIZO: Días de granizo
+     DTORMENTA: Días de tormenta
+     DNIEBLA: Días de niebla
+     DROCIO: Días de rocío
+     DESCARCHA: Días de escarcha
+     DNIEVESUE: Días de suelo cubierto de nieve
+     DINES: Días de meteoro precipitable no especificado
+     NDIAS: Número de días sin dato de precipitación
+     FH_ACT: Fecha de actualización
+
+Unidades y valores especiales:
+
+     Horas UTC (Tiempo Universal Coordinado)
+
+     Precipitaciones en décimas de milímetro, medidas de 07 a 07 (desde la 07 del día de la fecha hasta las 07 del día siguiente).
+	Valores especiales de precipitación:
+		-4: Precipitación acumulada
+		-3: Precipitación inapreciable (inferior a 1 décima)
+
+     Dirección del viento en decenas de grado
+	Valores especiales de dirección del viento:
+		99: Viento variable
+		88: Sin dato
+		 0: Viento en calma
